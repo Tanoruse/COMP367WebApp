@@ -1,0 +1,7 @@
+# Ignore target directory (compiled files)
+target/
+.settings/
+.classpath
+.project
+.idea/
+.m2/
