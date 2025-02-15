@@ -4,19 +4,31 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/Tanoruse/COMP367WebApp.git'
+                git branch: 'master', url: 'https://github.com/Tanoruse/COMP367WebApp.git'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn clean package'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn clean package'
+                    } else {
+                        bat 'mvn clean package'
+                    }
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh 'mvn test'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn test'
+                    } else {
+                        bat 'mvn test'
+                    }
+                }
             }
         }
 
