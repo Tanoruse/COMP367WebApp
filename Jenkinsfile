@@ -1,35 +1,16 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'maven3' // Use Maven configured in Jenkins
+    }
+
     environment {
-        MAVEN_VERSION = "3.8.6"
-        MAVEN_HOME = "${WORKSPACE}/maven"
-        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DOCKER_IMAGE_NAME = "Tanoruse/maven-webapp"
     }
 
     stages {
-        stage('Setup Maven') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh '''
-                            wget https://downloads.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
-                            tar -xvzf apache-maven-${MAVEN_VERSION}-bin.tar.gz
-                            mv apache-maven-${MAVEN_VERSION} ${MAVEN_HOME}
-                        '''
-                    } else {
-                        bat '''
-                            curl -o maven.zip https://downloads.apache.org/maven/maven-3/%MAVEN_VERSION%/binaries/apache-maven-%MAVEN_VERSION%-bin.zip
-                            powershell -Command "Expand-Archive -Path maven.zip -DestinationPath ."
-                            move apache-maven-%MAVEN_VERSION% maven
-                        '''
-                    }
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/Tanoruse/COMP367WebApp.git'
@@ -40,9 +21,9 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh '${MAVEN_HOME}/bin/mvn clean package'
+                        sh 'mvn clean package'
                     } else {
-                        bat '%MAVEN_HOME%\\bin\\mvn clean package'
+                        bat 'mvn clean package'
                     }
                 }
             }
@@ -52,9 +33,9 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh '${MAVEN_HOME}/bin/mvn test'
+                        sh 'mvn test'
                     } else {
-                        bat '%MAVEN_HOME%\\bin\\mvn test'
+                        bat 'mvn test'
                     }
                 }
             }
