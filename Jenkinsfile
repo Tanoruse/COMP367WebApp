@@ -41,14 +41,26 @@ pipeline {
             }
         }
 
+        stage('Prepare Docker Build') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh "cp target/COMP367WebApp.war ."
+                    } else {
+                        bat "copy target\\COMP367WebApp.war ."
+                    }
+                }
+            }
+        }
+
         stage('Docker Login') {
             steps {
                 script {
                     if (isUnix()) {
-                        sh 'docker login -u $DOCKER_HUB_CREDENTIALS_USR -p $DOCKER_HUB_CREDENTIALS_PSW'
+                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
                     } else {
                         bat """
-                        docker login -u %DOCKER_HUB_CREDENTIALS_USR% -p %DOCKER_HUB_CREDENTIALS_PSW%
+                        echo %DOCKER_HUB_CREDENTIALS_PSW% | docker login -u %DOCKER_HUB_CREDENTIALS_USR% --password-stdin
                         """
                     }
                 }
@@ -59,9 +71,9 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+                        sh "docker build -t ${DOCKER_IMAGE_NAME}:latest -f Dockerfile ."
                     } else {
-                        bat "docker build -t %DOCKER_IMAGE_NAME%:latest ."
+                        bat "docker build -t %DOCKER_IMAGE_NAME%:latest -f Dockerfile ."
                     }
                 }
             }
@@ -83,18 +95,4 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh "docker run -d -p 9090:9090 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
-                    } else {
-                        bat "docker run -d -p 9090:9090 --name maven-webapp %DOCKER_IMAGE_NAME%:latest"
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deployment Completed Successfully!'
-            }
-        }
-    }
-}
+                        sh "docker run -d -p 9090:9090 --
