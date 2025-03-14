@@ -31,7 +31,7 @@ pipeline {
         stage("Push Docker image to Docker Hub") {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'mavenfile', variable: 'DOCKERHUB_PWD')]) {
+                    withCredentials([string(credentialsId: 'CredentialID_DockerHubPWD', variable: 'DOCKERHUB_PWD')]) {
                         bat "echo %DOCKERHUB_PWD% | docker login --username anoruse --password-stdin"
                     }
                     bat "docker push anoruse/webapp"
