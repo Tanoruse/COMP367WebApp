@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     tools {
-maven 'maven3' // Use Maven configured in Jenkins
+        maven "Maven"  // Use the configured Maven in Jenkins
+    }
+
+    environment {
+        DOCKER_IMAGE_NAME = "tanoruse/maven-webapp" // Ensure username is lowercase
     }
 
     stages {
@@ -19,22 +23,42 @@ maven 'maven3' // Use Maven configured in Jenkins
                 }
             }
         }
-        
-        stage("Build Docker image") {
+
+        stage("Prepare WAR for Docker") {
             steps {
                 script {
-                    bat "docker build -t tanoruse/maven-webapp ."  
+                    if (isUnix()) {
+                        sh "cp target/COMP367WebApp.war MyWebApp.war"
+                    } else {
+                        bat "copy target\\COMP367WebApp.war MyWebApp.war"
+                    }
                 }
             }
         }
 
-        stage("Push Docker image to Docker Hub") {
+        stage("Build Docker Image") {
+            steps {
+                script {
+                    bat "docker build -t ${DOCKER_IMAGE_NAME} ."  
+                }
+            }
+        }
+        
+        stage("Push Docker Image to Docker Hub") {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKERHUB_PWD')]) {
                         bat "echo %DOCKERHUB_PWD% | docker login --username tanoruse --password-stdin"
                     }
-                    bat "docker push tanoruse/maven-webapp"
+                    bat "docker push ${DOCKER_IMAGE_NAME}"
+                }
+            }
+        }
+
+        stage("Run Docker Container") {
+            steps {
+                script {
+                    bat "docker run -d -p 8080:8080 --name maven-webapp ${DOCKER_IMAGE_NAME}"
                 }
             }
         }
