@@ -2,24 +2,24 @@ pipeline {
     agent any
 
     tools {
-        maven "maven3"  // Use the configured Maven in Jenkins
+        maven "maven3"
     }
 
     environment {
-        DOCKER_IMAGE_NAME = "tanoruse/maven-webapp" // Ensure username is lowercase
+        DOCKER_IMAGE_NAME = "tanoruse/maven-webapp"
     }
 
     stages {
-        stage("Check out") {
+        stage("Checkout Code") {
             steps {
                 git branch: 'master', url: 'https://github.com/Tanoruse/COMP367WebApp.git'
             }
         }
 
-        stage("Build Maven") {
+        stage("Build with Maven") {
             steps {
                 script {
-                    bat "mvn clean package"  // Use 'bat' for Windows
+                    bat "mvn clean package" // Use 'bat' for Windows
                 }
             }
         }
@@ -27,11 +27,7 @@ pipeline {
         stage("Prepare WAR for Docker") {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh "cp target/COMP367WebApp.war MyWebApp.war"
-                    } else {
-                        bat "copy target\\COMP367WebApp.war MyWebApp.war"
-                    }
+                    bat "copy target\\COMP367WebApp.war MyWebApp.war"
                 }
             }
         }
@@ -39,7 +35,7 @@ pipeline {
         stage("Build Docker Image") {
             steps {
                 script {
-                    bat "docker build -t ${DOCKER_IMAGE_NAME} ."  
+                    bat "docker build -t ${DOCKER_IMAGE_NAME} ."
                 }
             }
         }
@@ -48,7 +44,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PWD')]) {
-                        bat "echo %DOCKERHUB_PWD% | docker login --username %DOCKERHUB_USER% --password-stdin"
+                        bat "echo %DOCKERHUB_PWD% | docker login -u %DOCKERHUB_USER% --password-stdin"
                     }
                     bat "docker push ${DOCKER_IMAGE_NAME}"
                 }
