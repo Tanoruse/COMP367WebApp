@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "echo %DOCKER_PASS% | docker login --username %DOCKER_USER% --password-stdin"
+                        bat "echo %DOCKER_PASS% | docker login --username anoruse --password-stdin"
                     }
                     bat "docker push anoruse/webapp"
                 }
