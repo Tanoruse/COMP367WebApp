@@ -15,7 +15,7 @@ pipeline {
         stage("Build Maven") {
             steps {
                 script {
-                    bat "mvn clean package"  // Use 'bat' for Windows
+                    bat "mvn clean package"
                 }
             }
         }
@@ -27,7 +27,8 @@ pipeline {
                 }
             }
         }
-       stage("Push Docker image to Docker Hub") {
+
+        stage("Push Docker image to Docker Hub") {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'CredentialID_DockerHubPWD', variable: 'DOCKERHUB_PWD')]) {
