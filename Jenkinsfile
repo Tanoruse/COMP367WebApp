@@ -44,7 +44,11 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                    if (isUnix()) {
+                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                    } else {
+                        bat "echo %DOCKER_HUB_CREDENTIALS_PSW% | docker login -u %DOCKER_HUB_CREDENTIALS_USR% --password-stdin"
+                    }
                 }
             }
         }
@@ -52,7 +56,11 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+                    if (isUnix()) {
+                        sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+                    } else {
+                        bat "docker build -t %DOCKER_IMAGE_NAME%:latest ."
+                    }
                 }
             }
         }
@@ -60,7 +68,11 @@ pipeline {
         stage('Docker Push') {
             steps {
                 script {
-                    sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                    if (isUnix()) {
+                        sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                    } else {
+                        bat "docker push %DOCKER_IMAGE_NAME%:latest"
+                    }
                 }
             }
         }
@@ -68,7 +80,11 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run -d -p 9090:9090 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
+                    if (isUnix()) {
+                        sh "docker run -d -p 9090:9090 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
+                    } else {
+                        bat "docker run -d -p 9090:9090 --name maven-webapp %DOCKER_IMAGE_NAME%:latest"
+                    }
                 }
             }
         }
