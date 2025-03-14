@@ -20,21 +20,21 @@ pipeline {
             }
         }
         
-        stage("Build Docker Image") {
+        stage("Build Docker image") {
             steps {
                 script {
-                    bat "docker build -t anoruse/maven-webapp ."  
+                    bat "docker build -t anoruse/webapp ."  
                 }
             }
         }
 
-        stage("Push Docker Image to Docker Hub") {
+       stage("Push Docker image to Docker Hub") {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat "echo %DOCKER_PASS% | docker login --username %DOCKER_USER% --password-stdin"
                     }
-                    bat "docker push anoruse/maven-webapp"
+                    bat "docker push anoruse/webapp"
                 }
             }
         }
