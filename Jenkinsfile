@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'lab3')]) {
-                        bat "echo %DOCKERHUB_PWD% | docker login --username anoruse --password-stdin"
+                        bat "echo %lab3% | docker login --username anoruse --password-stdin"
                     }
                     bat "docker push anoruse/webapp"
                 }
