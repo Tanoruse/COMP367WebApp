@@ -5,6 +5,8 @@ pipeline {
         MAVEN_VERSION = "3.8.6"
         MAVEN_HOME = "${WORKSPACE}/maven"
         PATH = "${MAVEN_HOME}/bin:${env.PATH}"
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        DOCKER_IMAGE_NAME = "Tanoruse/maven-webapp"
     }
 
     stages {
@@ -30,7 +32,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/Tanoruse/COMP367WebApp.git'
+                git branch: 'master', url: 'https://github.com/Tanoruse/COMP367WebApp.git'
             }
         }
 
@@ -58,9 +60,41 @@ pipeline {
             }
         }
 
+        stage('Docker Login') {
+            steps {
+                script {
+                    sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    sh "docker push ${DOCKER_IMAGE_NAME}:latest"
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    sh "docker run -d -p 9090:9090 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
+                }
+            }
+        }
+
         stage('Deploy') {
             steps {
-                echo 'Deploying Application...'
+                echo 'Deployment Completed Successfully!'
             }
         }
     }
