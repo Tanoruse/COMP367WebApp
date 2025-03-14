@@ -95,4 +95,19 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh "docker run -d -p 9090:9090 --
+                        sh "docker run -d -p 8080:9090 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
+                    } else {
+                        bat "docker run -d -p 8080:9090 --name maven-webapp %DOCKER_IMAGE_NAME%:latest"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deployment Completed Successfully!'
+                echo 'Your app is running on http://localhost:8080'
+            }
+        }
+    }
+}
