@@ -2,112 +2,40 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven3' // Use Maven configured in Jenkins
-    }
-
-    environment {
-        DOCKER_IMAGE_NAME = "tanoruse/maven-webapp" // Ensure username is lowercase
+        maven "Maven"  
     }
 
     stages {
-        stage('Checkout') {
+        stage("Check out") {
             steps {
                 git branch: 'master', url: 'https://github.com/Tanoruse/COMP367WebApp.git'
             }
         }
 
-        stage('Build') {
+        stage("Build Maven") {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh 'mvn clean package'
-                    } else {
-                        bat 'mvn clean package'
-                    }
+                    bat "mvn clean package"  // Use 'bat' for Windows
+                }
+            }
+        }
+        
+        stage("Build Docker image") {
+            steps {
+                script {
+                    bat "docker build -t tanoruse/maven-webapp ."  
                 }
             }
         }
 
-        stage('Test') {
+        stage("Push Docker image to Docker Hub") {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh 'mvn test'
-                    } else {
-                        bat 'mvn test'
+                    withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'DOCKERHUB_PWD')]) {
+                        bat "echo %DOCKERHUB_PWD% | docker login --username tanoruse --password-stdin"
                     }
+                    bat "docker push tanoruse/maven-webapp"
                 }
-            }
-        }
-
-        stage('Prepare Docker Build') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh "cp target/COMP367WebApp.war ."
-                    } else {
-                        bat "copy target\\COMP367WebApp.war ."
-                    }
-                }
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        if (isUnix()) {
-                            sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                        } else {
-                            bat """
-                            echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                            """
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh "docker build --no-cache -t ${DOCKER_IMAGE_NAME}:latest -f Dockerfile ."
-                    } else {
-                        bat "docker build --no-cache -t \"%DOCKER_IMAGE_NAME%\":latest -f Dockerfile ."
-                    }
-                }
-            }
-        }
-
-        stage('Docker Push') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh "docker push ${DOCKER_IMAGE_NAME}:latest"
-                    } else {
-                        bat "docker push \"%DOCKER_IMAGE_NAME%\":latest"
-                    }
-                }
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        sh "docker run -d -p 8080:8080 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
-                    } else {
-                        bat "docker run -d -p 8080:8080 --name maven-webapp \"%DOCKER_IMAGE_NAME%\":latest"
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deployment Completed Successfully!'
-                echo 'Your app is running on http://localhost:8080'
             }
         }
     }
