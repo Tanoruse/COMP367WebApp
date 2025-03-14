@@ -6,7 +6,6 @@ pipeline {
     }
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DOCKER_IMAGE_NAME = "tanoruse/maven-webapp" // Ensure username is lowercase
     }
 
@@ -53,30 +52,29 @@ pipeline {
             }
         }
 
-     stage('Docker Login') {
-    steps {
-        script {
-            withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                if (isUnix()) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                } else {
-                    bat """
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    """
+        stage('Docker Login') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        if (isUnix()) {
+                            sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                        } else {
+                            bat """
+                            echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                            """
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
 
         stage('Docker Build') {
             steps {
                 script {
                     if (isUnix()) {
-                        sh "docker build -t ${DOCKER_IMAGE_NAME}:latest -f Dockerfile ."
+                        sh "docker build --no-cache -t ${DOCKER_IMAGE_NAME}:latest -f Dockerfile ."
                     } else {
-                        bat "docker build -t %DOCKER_IMAGE_NAME%:latest -f Dockerfile ."
+                        bat "docker build --no-cache -t \"%DOCKER_IMAGE_NAME%\":latest -f Dockerfile ."
                     }
                 }
             }
@@ -88,7 +86,7 @@ pipeline {
                     if (isUnix()) {
                         sh "docker push ${DOCKER_IMAGE_NAME}:latest"
                     } else {
-                        bat "docker push %DOCKER_IMAGE_NAME%:latest"
+                        bat "docker push \"%DOCKER_IMAGE_NAME%\":latest"
                     }
                 }
             }
@@ -98,9 +96,9 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh "docker run -d -p 8080:9090 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
+                        sh "docker run -d -p 8080:8080 --name maven-webapp ${DOCKER_IMAGE_NAME}:latest"
                     } else {
-                        bat "docker run -d -p 8080:9090 --name maven-webapp %DOCKER_IMAGE_NAME%:latest"
+                        bat "docker run -d -p 8080:8080 --name maven-webapp \"%DOCKER_IMAGE_NAME%\":latest"
                     }
                 }
             }
