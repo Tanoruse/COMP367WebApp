@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
-        DOCKER_IMAGE_NAME = "Tanoruse/maven-webapp"
+        DOCKER_IMAGE_NAME = "tanoruse/maven-webapp" // Ensure username is lowercase
     }
 
     stages {
@@ -45,9 +45,11 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                        sh 'docker login -u $DOCKER_HUB_CREDENTIALS_USR -p $DOCKER_HUB_CREDENTIALS_PSW'
                     } else {
-                        bat "echo %DOCKER_HUB_CREDENTIALS_PSW% | docker login -u %DOCKER_HUB_CREDENTIALS_USR% --password-stdin"
+                        bat """
+                        docker login -u %DOCKER_HUB_CREDENTIALS_USR% -p %DOCKER_HUB_CREDENTIALS_PSW%
+                        """
                     }
                 }
             }
