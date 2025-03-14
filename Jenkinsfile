@@ -31,7 +31,9 @@ pipeline {
         stage("Push Docker image to Docker Hub") {
             steps {
                 script {
-                    bat "echo passwordd | docker login --username anoruse --password-stdin"
+                    withCredentials([string(credentialsId: 'docker-hub-credentials', variable: 'lab3')]) {
+                        bat "echo %lab3% | docker login --username anoruse --password-stdin"
+                    }
                     bat "docker push anoruse/webapp"
                 }
             }
