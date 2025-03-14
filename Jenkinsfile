@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage("Check out") {
             steps {
-                git branch: 'main', url: 'https://github.com/Tanoruse/COMP367WebApp'
+                git branch: 'master', url: 'https://github.com/Tanoruse/COMP367WebApp'
             }
         }
 
